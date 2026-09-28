@@ -48,6 +48,17 @@ export async function POST(request: NextRequest) {
      */
     const decodedToken = await adminAuth.verifyIdToken(idToken);
 
+    if (decodedToken.email_verified !== true) {
+      return NextResponse.json(
+        {
+          message: "Email verification required.",
+        },
+        {
+          status: 403,
+        },
+      );
+    }
+
     /*
      * Require a recent login.
      *

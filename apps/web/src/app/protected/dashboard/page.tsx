@@ -1,5 +1,7 @@
 import { requireAuth } from "@/src/lib/auth/require-auth";
 
+import { LogoutButton } from "@/src/features/auth/components/logout-button";
+
 export default async function DashboardPage() {
   const session = await requireAuth();
 
@@ -7,11 +9,11 @@ export default async function DashboardPage() {
     <main className="p-10">
       <h1 className="text-3xl font-semibold">ServiceFlow Dashboard</h1>
 
-      <p className="mt-4 text-muted-foreground">Signed in as:</p>
+      <p className="mt-4">{session.email}</p>
 
-      <p className="font-medium">{session.email}</p>
-
-      <p className="mt-2 text-sm">UID: {session.uid}</p>
+      <div className="mt-6">
+        <LogoutButton />
+      </div>
     </main>
   );
 }
