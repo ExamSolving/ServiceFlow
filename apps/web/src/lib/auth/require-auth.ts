@@ -2,10 +2,10 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 
-import { getServerSession } from "./session";
+import { getAppSession } from "./app-session";
 
 export async function requireAuth() {
-  const session = await getServerSession();
+  const session = await getAppSession();
 
   if (!session) {
     redirect("/login");

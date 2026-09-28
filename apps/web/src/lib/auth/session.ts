@@ -6,22 +6,17 @@ import { adminAuth } from "@/src/lib/firebase/admin";
 
 import { SESSION_COOKIE_NAME } from "./constants";
 
-export async function getServerSession() {
+export async function getFirebaseSession() {
   const cookieStore = await cookies();
 
-  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const cookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-  if (!sessionCookie) {
+  if (!cookie) {
     return null;
   }
 
   try {
-    const decodedToken = await adminAuth.verifySessionCookie(
-      sessionCookie,
-      true,
-    );
-
-    return decodedToken;
+    return await adminAuth.verifySessionCookie(cookie, true);
   } catch {
     return null;
   }
