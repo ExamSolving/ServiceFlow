@@ -9,7 +9,7 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
-
+import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/src/lib/firebase/client";
 import { connectAuthEmulatorIfNeeded } from "@/src/lib/firebase/emulator";
 
@@ -22,6 +22,36 @@ interface RegisterOwnerInput {
   companyName: string;
   email: string;
   password: string;
+}
+
+interface ResetPasswordInput {
+  email: string;
+}
+
+export async function requestPasswordReset({
+  email,
+}: ResetPasswordInput): Promise<void> {
+  connectAuthEmulatorIfNeeded();
+
+  try {
+    await sendPasswordResetEmail(auth, email.trim(), {
+      url: `${window.location.origin}/login`,
+    });
+  } catch (error: unknown) {
+    /*
+     * Do not reveal whether an account exists.
+     */
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "auth/user-not-found"
+    ) {
+      return;
+    }
+
+    throw error;
+  }
 }
 
 export async function registerOwner({
