@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:dashboard": "node --experimental-strip-types --experimental-default-type=module scripts/test-dashboard.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

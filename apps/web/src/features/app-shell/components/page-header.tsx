@@ -15,8 +15,8 @@ export function PageHeader({
 }) {
   return (
     <header className="mb-8">
-      <nav aria-label="Breadcrumb" className="mb-5">
-        <ol className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+      <nav aria-label="Breadcrumb" className="mb-4">
+        <ol className="flex flex-wrap items-center gap-2 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
           {breadcrumbs.map((item, index) => (
             <li
               key={`${item.label}-${index}`}
@@ -47,7 +47,7 @@ export function PageHeader({
       </nav>
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+          <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
             {title}
           </h1>
           {description && (

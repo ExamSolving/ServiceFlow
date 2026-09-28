@@ -117,7 +117,7 @@ export function Sidebar({
                 collapsed && "sr-only",
               )}
             >
-              <h2 className="font-sans text-[9px] font-medium uppercase tracking-[.15em] text-sidebar-foreground/80">
+              <h2 className="text-[10px] font-medium uppercase tracking-[.14em] text-sidebar-foreground/80">
                 {group.label}
               </h2>
               {group.items.every((item) => !item.available) && (
@@ -149,10 +149,10 @@ export function Sidebar({
                   </>
                 );
                 const classes = cn(
-                  "flex min-h-9 w-full items-center gap-3 rounded-lg px-3 text-xs transition-colors motion-reduce:transition-none",
+                  "flex min-h-10 w-full items-center gap-3 rounded-lg border border-transparent px-3 text-xs transition-colors motion-reduce:transition-none",
                   collapsed && "justify-center px-0",
                   active && item.available
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                    ? "border-sidebar-border/70 bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
                     : "text-sidebar-foreground",
                   item.available
                     ? "hover:bg-sidebar-accent/70 focus-visible:outline-2 focus-visible:outline-sidebar-ring"

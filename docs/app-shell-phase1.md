@@ -1,6 +1,6 @@
 # ServiceFlow — Phase 1 application shell
 
-Status: implemented for review. Phase 2 has not started.
+Status: implemented. The dashboard vertical slice is documented in `docs/dashboard-phase2.md`.
 
 ## Architecture
 
@@ -62,12 +62,7 @@ Paths below are relative to `/Users/nspira/Desktop/serviceflow`.
 
 UI interaction checks used the actual shell components with a sample identity in a separate temporary local preview outside the repository. No auth bypass or preview route was added to the real application. The isolated preview was stopped after testing. The screenshot uses sample identity details. Real authenticated sign-in and successful logout with the user's own account remain on the manual checklist.
 
-Full TypeScript checking still reports two pre-existing blockers:
-
-- `apps/web/src/app/api/auth/me/route.ts` is empty and not a module.
-- `.next/types/validator.ts` contains a stale reference to the missing `src/app/page.tsx`.
-
-Neither was changed as part of the application-shell scope. A clean production build is not claimed. The protected error boundary handles child-route failures; auth failures in the enclosing layout remain handled by Next.js/parent boundaries as before.
+The dashboard phase completed the two route/type blockers that were recorded here: `/api/auth/me` now has a safe session response and the root app page exists for Next's route validator. The web app now passes TypeScript and a production build. The protected error boundary handles child-route failures; auth failures in the enclosing layout remain handled by Next.js/parent boundaries as before.
 
 ## Commands
 
@@ -83,7 +78,7 @@ Open `http://localhost:3000/dashboard` after starting the web server. During thi
 
 ## Firebase changes
 
-None. No Firestore indexes, Firestore rules, Storage rules, credentials, Firebase collections, or Cloud Functions changed. No tenant data was created or modified. Future data work must derive organizationId and actor IDs from the trusted AppSession and apply tenant filters/record ownership checks.
+The shell phase itself did not create tenant data or change credentials, Storage rules, or Cloud Functions. The dashboard phase adds tenant-scoped Firestore indexes and deny-by-default Firestore rules; see `docs/dashboard-phase2.md`. Future data work must derive organizationId and actor IDs from the trusted AppSession and apply tenant filters/record ownership checks.
 
 ## Manual review checklist
 
@@ -96,8 +91,8 @@ None. No Firestore indexes, Firestore rules, Storage rules, credentials, Firebas
 - [ ] Confirm planned modules are disabled and never lead to a 404 through navigation.
 - [ ] Review long organization/user names and narrow phone layouts.
 - [ ] Review colors and typography alongside login/register pages.
-- [ ] Approve Phase 1 before starting dashboard data/UI work.
+- [ ] Review the completed dashboard slice and its manual checks in `docs/dashboard-phase2.md`.
 
-## Recommended Phase 2, after approval
+## Follow-on phase
 
-Build the dashboard inside the shared shell: greeting, organization name, KPI components, today's schedule, pending actions, recent jobs, and technician availability, with loading/empty/error states. If sample values are used for design approval, label them as sample data. Keep New Job unavailable until a working authorized route exists. Replace approved sample data through server-only, tenant-scoped services. Customers, Jobs, and the mobile app remain later phases.
+Organization Settings should add a tenant-authorized timezone and organization profile editor before Customers, so later dashboards and forms can use an explicit organization locale. See `docs/dashboard-phase2.md` for the completed dashboard slice and its verification checklist.

@@ -2,6 +2,7 @@
 
 import { Menu } from "@base-ui/react/menu";
 import { Building2, ChevronDown, Loader2, LogOut } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useLogout } from "@/src/features/auth/hooks/use-logout";
 import { ROLE_LABELS } from "@/src/lib/auth/permissions";
 import type { ShellIdentity } from "../types/shell";
@@ -53,9 +54,9 @@ export function UserMenu({ identity }: { identity: ShellIdentity }) {
               <p className="mt-1 break-all text-xs text-muted-foreground">
                 {identity.email}
               </p>
-              <span className="mt-3 inline-flex rounded-md bg-secondary px-2 py-1 text-[10px] font-medium text-secondary-foreground">
+              <Badge className="mt-3" variant="positive">
                 {ROLE_LABELS[identity.role]}
-              </span>
+              </Badge>
             </div>
             <div className="flex items-center gap-2 px-3 py-3 text-xs text-muted-foreground">
               <Building2 size={15} className="shrink-0" aria-hidden="true" />
