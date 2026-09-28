@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { FirebaseError } from "firebase/app";
 
 import { useRouter } from "next/navigation";
 
@@ -35,7 +36,30 @@ export default function LoginPage() {
     } catch (error) {
       console.error(error);
 
-      setError("Invalid email or password.");
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case "auth/invalid-credential":
+          case "auth/invalid-login-credentials":
+          case "auth/invalid-email":
+          case "auth/user-not-found":
+          case "auth/wrong-password":
+            setError("Invalid email or password.");
+            break;
+          case "auth/network-request-failed":
+            setError("Unable to reach Firebase. Check your connection and try again.");
+            break;
+          case "auth/too-many-requests":
+            setError("Too many sign-in attempts. Please try again later.");
+            break;
+          case "auth/user-disabled":
+            setError("This account has been disabled.");
+            break;
+          default:
+            setError("Unable to sign in. Please try again later.");
+        }
+      } else {
+        setError("Unable to establish your login session. Please try again or contact support.");
+      }
     } finally {
       setLoading(false);
     }
