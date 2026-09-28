@@ -1,170 +1,162 @@
 "use client";
 
 import { useState } from "react";
-
 import Link from "next/link";
-
-import { ArrowLeft, CheckCircle2, Loader2, Mail } from "lucide-react";
-
+import {
+  ArrowLeft,
+  ArrowRight,
+  CircleAlert,
+  KeyRound,
+  Loader2,
+  Mail,
+  MailCheck,
+} from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { useForm } from "react-hook-form";
-
 import { Button } from "@/components/ui/button";
-
 import { Input } from "@/components/ui/input";
-
 import { Label } from "@/components/ui/label";
-
 import {
   forgotPasswordSchema,
   type ForgotPasswordFormValues,
 } from "@/src/features/auth/schemas/forgot-password.schema";
-
 import { requestPasswordReset } from "@/src/features/auth/services/auth.client";
-
 import { getFirebaseAuthError } from "@/src/lib/utils/firebase-error";
 
 export function ForgotPasswordForm() {
-  const [success, setSuccess] = useState(false);
-
+  const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
-
   const {
     register,
     handleSubmit,
-
     formState: { errors, isSubmitting },
   } = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
-
-    defaultValues: {
-      email: "",
-    },
+    defaultValues: { email: "" },
   });
 
   async function onSubmit(values: ForgotPasswordFormValues) {
     try {
       setServerError(null);
-
-      await requestPasswordReset({
-        email: values.email,
-      });
-
-      /*
-       * Always show success.
-       *
-       * This prevents account
-       * enumeration.
-       */
-      setSuccess(true);
+      await requestPasswordReset({ email: values.email });
+      // Keep the same response whether or not this account exists.
+      setSubmittedEmail(values.email.trim());
     } catch (error) {
       console.error("Password reset failed:", error);
-
       setServerError(getFirebaseAuthError(error));
     }
   }
 
-  if (success) {
+  if (submittedEmail !== null) {
     return (
-      <div className="w-full text-center">
-        <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-emerald-500/10">
-          <CheckCircle2 className="size-7 text-emerald-600" />
+      <div className="sf-auth-page sf-success" role="status">
+        <div className="sf-state-icon">
+          <MailCheck size={27} aria-hidden="true" />
         </div>
-
-        <h1 className="mt-6 text-3xl font-semibold tracking-[-0.03em]">
-          Check your email
-        </h1>
-
-        <p className="mt-3 text-[15px] leading-6 text-muted-foreground">
-          If an account exists for that email address, we&apos;ve sent
-          instructions to reset the password.
-        </p>
-
-        <Button asChild className="mt-8 h-12 w-full rounded-xl">
-          <Link href="/login">Return to sign in</Link>
-        </Button>
+        <div className="sf-form-heading">
+          <p className="sf-eyebrow">YOUR NEXT STEP</p>
+          <h1>Check your inbox.</h1>
+          <p>
+            If an account exists for{" "}
+            <strong className="sf-email-value">{submittedEmail}</strong>,
+            you&apos;ll receive a link to reset your password.
+          </p>
+        </div>
+        <div className="sf-info-panel">
+          <Mail size={18} aria-hidden="true" />
+          <p>
+            Give it a moment to arrive, and check your spam folder too. Follow
+            the link in the email to choose a new password.
+          </p>
+        </div>
+        <Link href="/login" className="sf-primary-button sf-button-link">
+          Back to sign in
+          <ArrowRight size={18} aria-hidden="true" />
+        </Link>
+        <button
+          type="button"
+          className="sf-back-link sf-success-back"
+          onClick={() => setSubmittedEmail(null)}
+        >
+          Used a different email? Try again
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="w-full">
-      <div className="mb-8">
-        <p className="mb-2 text-sm font-medium text-primary">
-          Password recovery
-        </p>
-
-        <h1 className="text-3xl font-semibold tracking-[-0.03em]">
-          Forgot your password?
-        </h1>
-
-        <p className="mt-3 text-[15px] leading-6 text-muted-foreground">
-          Enter your work email and we&apos;ll send you instructions to reset
-          your password.
+    <div className="sf-auth-page">
+      <Link href="/login" className="sf-back-link">
+        <ArrowLeft size={16} aria-hidden="true" /> Back to sign in
+      </Link>
+      <div className="sf-state-icon">
+        <KeyRound size={26} aria-hidden="true" />
+      </div>
+      <div className="sf-form-heading">
+        <p className="sf-eyebrow">LET’S GET YOU BACK IN</p>
+        <h1>Forgot your password?</h1>
+        <p>
+          It happens. Enter your work email and we&apos;ll help you reset it.
         </p>
       </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-        <div className="space-y-2">
-          <Label htmlFor="email">Email address</Label>
-
-          <div className="relative">
-            <Mail
-              className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden="true"
-            />
-
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="sf-form"
+        noValidate
+        aria-busy={isSubmitting}
+      >
+        <div className="sf-field">
+          <Label htmlFor="email">Work email</Label>
+          <div className="sf-input-wrap">
+            <Mail size={18} className="sf-input-icon" aria-hidden="true" />
             <Input
               id="email"
               type="email"
               autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
               placeholder="you@company.com"
-              className="h-12 rounded-xl pl-10"
+              className="sf-input"
               disabled={isSubmitting}
               aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? "email-error" : undefined}
               {...register("email")}
             />
           </div>
-
           {errors.email && (
-            <p className="text-sm text-destructive" role="alert">
+            <p id="email-error" className="sf-field-error" role="alert">
               {errors.email.message}
             </p>
           )}
         </div>
-
         {serverError && (
-          <div
-            className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
-            role="alert"
-          >
-            {serverError}
+          <div className="sf-alert" role="alert">
+            <CircleAlert size={18} aria-hidden="true" />
+            <span>{serverError}</span>
           </div>
         )}
-
         <Button
           type="submit"
+          className="sf-primary-button"
           disabled={isSubmitting}
-          className="h-12 w-full rounded-xl font-semibold"
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="mr-2 size-4 animate-spin" />
-              Sending...
+              <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+              Sending instructions…
             </>
           ) : (
-            "Send reset instructions"
+            <>
+              Send reset link
+              <ArrowRight size={18} aria-hidden="true" />
+            </>
           )}
         </Button>
-
-        <Button asChild variant="ghost" className="h-11 w-full">
-          <Link href="/login">
-            <ArrowLeft className="mr-2 size-4" />
-            Back to sign in
-          </Link>
-        </Button>
       </form>
+      <div className="sf-form-note">
+        <Mail size={18} aria-hidden="true" />
+        <span>We&apos;ll email you a link to set a new password.</span>
+      </div>
     </div>
   );
 }

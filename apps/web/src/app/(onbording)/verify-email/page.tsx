@@ -1,44 +1,56 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowRight, Mail, MailCheck } from "lucide-react";
 
-import { MailCheck } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-
-interface VerifyEmailPageProps {
-  searchParams: Promise<{
-    email?: string;
-  }>;
-}
+export const metadata: Metadata = { title: "Verify your email" };
 
 export default async function VerifyEmailPage({
   searchParams,
-}: VerifyEmailPageProps) {
-  const params = await searchParams;
-
+}: {
+  searchParams: Promise<{ email?: string }>;
+}) {
+  const { email } = await searchParams;
   return (
-    <div className="text-center">
-      <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/10">
-        <MailCheck className="size-7 text-primary" />
+    <div className="sf-auth-page sf-success">
+      <div className="sf-state-icon">
+        <MailCheck size={27} aria-hidden="true" />
       </div>
-
-      <h1 className="mt-6 text-3xl font-semibold tracking-[-0.03em]">
-        Verify your email
-      </h1>
-
-      <p className="mt-3 text-[15px] leading-6 text-muted-foreground">
-        We sent a verification link to
-      </p>
-
-      {params.email && <p className="mt-1 font-medium">{params.email}</p>}
-
-      <p className="mt-4 text-sm leading-6 text-muted-foreground">
-        Verify your email address before signing in to your ServiceFlow
-        workspace.
-      </p>
-
-      <Button asChild className="mt-8 h-12 w-full rounded-xl">
-        <Link href="/login">Go to sign in</Link>
-      </Button>
+      <div className="sf-form-heading">
+        <p className="sf-eyebrow">ONE LAST STEP</p>
+        <h1>Make it official.</h1>
+        <p>
+          We&apos;ve sent a verification link
+          {email ? (
+            <>
+              {" "}
+              to <strong className="sf-email-value">{email}</strong>
+            </>
+          ) : (
+            " to your email"
+          )}
+          . Open it to verify your address and get your workspace started.
+        </p>
+      </div>
+      <ol className="sf-onboarding-steps" aria-label="Account setup progress">
+        <li>
+          <span>✓</span> Account created
+        </li>
+        <li aria-current="step">
+          <span>02</span> Verify email
+        </li>
+      </ol>
+      <div className="sf-info-panel">
+        <Mail size={18} aria-hidden="true" />
+        <p>
+          Can&apos;t find the email? Check your spam folder and allow a few
+          minutes for it to arrive.
+        </p>
+      </div>
+      <Link href="/login" className="sf-primary-button sf-button-link">
+        Continue to sign in
+        <ArrowRight size={18} aria-hidden="true" />
+      </Link>
+      <p className="sf-form-note">Verify your email before signing in.</p>
     </div>
   );
 }

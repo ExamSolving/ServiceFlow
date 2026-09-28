@@ -1,75 +1,45 @@
-import {
-  BriefcaseBusiness,
-  CalendarCheck,
-  FileText,
-  PackageCheck,
-} from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, Layers2, LockKeyhole } from "lucide-react";
+import { AuthBrandPanel } from "./auth-brand-panel";
+import "./auth.css";
 
-interface AuthShellProps {
-  children: React.ReactNode;
-}
-
-const features = [
-  {
-    icon: CalendarCheck,
-    text: "Smart job scheduling",
-  },
-  {
-    icon: BriefcaseBusiness,
-    text: "Technician workflow",
-  },
-  {
-    icon: FileText,
-    text: "Quotes and invoicing",
-  },
-  {
-    icon: PackageCheck,
-    text: "Inventory management",
-  },
-];
-
-export function AuthShell({ children }: AuthShellProps) {
+export function AuthShell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-screen bg-muted/30">
-      <div className="grid min-h-screen lg:grid-cols-[0.9fr_1.1fr]">
-        <section className="hidden bg-slate-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
-          <div>
-            <div className="text-xl font-semibold">ServiceFlow</div>
-
-            <div className="mt-24 max-w-lg">
-              <h1 className="text-5xl font-semibold leading-tight tracking-tight">
-                Run your service business smarter.
-              </h1>
-
-              <p className="mt-6 text-lg leading-8 text-slate-300">
-                Manage customers, technicians, jobs, quotations and payments
-                from one unified workspace.
-              </p>
-
-              <div className="mt-10 space-y-5">
-                {features.map(({ icon: Icon, text }) => (
-                  <div
-                    key={text}
-                    className="flex items-center gap-3 text-slate-200"
-                  >
-                    <div className="flex size-9 items-center justify-center rounded-lg bg-white/10">
-                      <Icon className="size-4" />
-                    </div>
-
-                    <span>{text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <p className="text-sm text-slate-500 mt-5">© 2026 ServiceFlow</p>
-        </section>
-
-        <section className="flex items-center justify-center px-6 py-12 sm:px-12">
-          <div className="w-full max-w-md">{children}</div>
-        </section>
-      </div>
+    <main className="sf-auth">
+      <a href="#auth-content" className="sf-skip">
+        Skip to form
+      </a>
+      <aside className="sf-story">
+        <AuthBrandPanel />
+      </aside>
+      <section className="sf-form-side" aria-label="Your ServiceFlow account">
+        <header className="sf-topbar">
+          <Link
+            href="/login"
+            className="sf-logo sf-mobile-logo"
+            aria-label="ServiceFlow sign in"
+          >
+            <span className="sf-logo-mark">
+              <Layers2 size={21} aria-hidden="true" />
+            </span>
+            ServiceFlow<span className="sf-logo-dot">.</span>
+          </Link>
+          <span className="sf-topbar-label">YOUR WORK, IN GOOD ORDER.</span>
+          <span className="sf-security">
+            <LockKeyhole size={13} aria-hidden="true" /> Secure workspace
+          </span>
+        </header>
+        <div className="sf-form-container" id="auth-content" tabIndex={-1}>
+          <div className="sf-form-content">{children}</div>
+        </div>
+        <footer className="sf-form-footer">
+          <span>© {new Date().getFullYear()} ServiceFlow</span>
+          <span>
+            Built for the work that matters{" "}
+            <ArrowUpRight size={13} aria-hidden="true" />
+          </span>
+        </footer>
+      </section>
     </main>
   );
 }

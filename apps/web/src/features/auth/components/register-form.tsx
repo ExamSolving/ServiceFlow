@@ -1,58 +1,43 @@
 "use client";
 
-import { useState } from "react";
-
+import { useState, useTransition } from "react";
 import Link from "next/link";
-
 import { useRouter } from "next/navigation";
-
 import {
+  ArrowRight,
   Building2,
-  Eye,
-  EyeOff,
+  Check,
+  CircleAlert,
   Loader2,
-  LockKeyhole,
   Mail,
   User,
 } from "lucide-react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
-
-import { useForm } from "react-hook-form";
-
+import { useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-
 import { Checkbox } from "@/components/ui/checkbox";
-
 import { Input } from "@/components/ui/input";
-
 import { Label } from "@/components/ui/label";
-
 import {
   registerSchema,
   type RegisterFormValues,
 } from "@/src/features/auth/schemas/register.schema";
-
 import { registerOwner } from "@/src/features/auth/services/auth.client";
-
 import { getFirebaseAuthError } from "@/src/lib/utils/firebase-error";
+import { PasswordField } from "./password-field";
 
 export function RegisterForm() {
   const router = useRouter();
-
-  const [showPassword, setShowPassword] = useState(false);
-
+  const [isNavigating, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
-
   const {
     register,
     handleSubmit,
     setValue,
-
+    control,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-
     defaultValues: {
       fullName: "",
       companyName: "",
@@ -62,226 +47,188 @@ export function RegisterForm() {
       termsAccepted: false,
     },
   });
+  const password = useWatch({ control, name: "password" });
+  const termsAccepted = useWatch({ control, name: "termsAccepted" });
+  const isBusy = isSubmitting || isNavigating;
 
   async function onSubmit(values: RegisterFormValues) {
     try {
       setServerError(null);
-
       const result = await registerOwner({
         fullName: values.fullName,
-
         companyName: values.companyName,
-
         email: values.email,
-
         password: values.password,
       });
-
-      router.replace(
-        `/verify-email?email=${encodeURIComponent(result.email ?? "")}`,
-      );
+      startTransition(() => {
+        router.replace(
+          `/verify-email?email=${encodeURIComponent(result.email ?? "")}`,
+        );
+      });
     } catch (error) {
       console.error("Registration failed:", error);
-
       setServerError(getFirebaseAuthError(error));
     }
   }
 
   return (
-    <div className="w-full">
-      <div className="mb-8">
-        <p className="mb-2 text-sm font-medium text-primary">
-          Start your workspace
-        </p>
-
-        <h1 className="text-3xl font-semibold tracking-[-0.03em]">
-          Create your ServiceFlow account
-        </h1>
-
-        <p className="mt-3 text-[15px] leading-6 text-muted-foreground">
-          Create your company workspace and start managing field service
-          operations.
-        </p>
+    <div className="sf-auth-page sf-register-page">
+      <div className="sf-form-heading">
+        <p className="sf-eyebrow">A BETTER WAY TO WORK</p>
+        <h1>Make room for more.</h1>
+        <p>Create your workspace. Bring your business together.</p>
       </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="fullName">Full name</Label>
-
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-
-            <Input
-              id="fullName"
-              className="h-12 rounded-xl pl-10"
-              placeholder="John Smith"
-              {...register("fullName")}
-            />
-          </div>
-
-          {errors.fullName && (
-            <p className="text-sm text-destructive">
-              {errors.fullName.message}
-            </p>
-          )}
+      <ol className="sf-onboarding-steps" aria-label="Account setup progress">
+        <li aria-current="step">
+          <span>01</span> Create account
+        </li>
+        <li>
+          <span>02</span> Verify email
+        </li>
+      </ol>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="sf-form"
+        noValidate
+        aria-busy={isBusy}
+      >
+        <div className="sf-field-grid">
+          {(
+            [
+              {
+                name: "fullName",
+                label: "Full name",
+                placeholder: "Alex Morgan",
+                autoComplete: "name",
+                icon: User,
+              },
+              {
+                name: "companyName",
+                label: "Company name",
+                placeholder: "Your company",
+                autoComplete: "organization",
+                icon: Building2,
+              },
+            ] as const
+          ).map(({ name, label, placeholder, autoComplete, icon: Icon }) => (
+            <div className="sf-field" key={name}>
+              <Label htmlFor={name}>{label}</Label>
+              <div className="sf-input-wrap">
+                <Icon size={18} className="sf-input-icon" aria-hidden="true" />
+                <Input
+                  id={name}
+                  placeholder={placeholder}
+                  autoComplete={autoComplete}
+                  className="sf-input"
+                  disabled={isBusy}
+                  aria-invalid={!!errors[name]}
+                  aria-describedby={errors[name] ? `${name}-error` : undefined}
+                  {...register(name)}
+                />
+              </div>
+              {errors[name] && (
+                <p id={`${name}-error`} className="sf-field-error" role="alert">
+                  {errors[name]?.message}
+                </p>
+              )}
+            </div>
+          ))}
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="companyName">Company name</Label>
-
-          <div className="relative">
-            <Building2 className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-
-            <Input
-              id="companyName"
-              className="h-12 rounded-xl pl-10"
-              placeholder="ABC Services"
-              {...register("companyName")}
-            />
-          </div>
-
-          {errors.companyName && (
-            <p className="text-sm text-destructive">
-              {errors.companyName.message}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-2">
+        <div className="sf-field">
           <Label htmlFor="email">Work email</Label>
-
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-
+          <div className="sf-input-wrap">
+            <Mail size={18} className="sf-input-icon" aria-hidden="true" />
             <Input
               id="email"
               type="email"
               autoComplete="email"
-              className="h-12 rounded-xl pl-10"
+              autoCapitalize="none"
+              spellCheck={false}
               placeholder="you@company.com"
+              className="sf-input"
+              disabled={isBusy}
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? "email-error" : undefined}
               {...register("email")}
             />
           </div>
-
           {errors.email && (
-            <p className="text-sm text-destructive">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-
-          <div className="relative">
-            <LockKeyhole className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              className="h-12 rounded-xl px-10"
-              placeholder="Password"
-              {...register("password")}
-            />
-
-            <button
-              type="button"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              onClick={() => setShowPassword((value) => !value)}
-            >
-              {showPassword ? (
-                <EyeOff className="size-4" />
-              ) : (
-                <Eye className="size-4" />
-              )}
-            </button>
-          </div>
-
-          {errors.password && (
-            <p className="text-sm text-destructive">
-              {errors.password.message}
+            <p id="email-error" className="sf-field-error" role="alert">
+              {errors.email.message}
             </p>
           )}
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm password</Label>
-          <div className="relative">
-            <LockKeyhole className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              id="confirmPassword"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              className="h-12 rounded-xl px-10"
-              placeholder="Confirm Password"
-              {...register("confirmPassword")}
-            />
-          </div>
-
-          {errors.confirmPassword && (
-            <p className="text-sm text-destructive">
-              {errors.confirmPassword.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <div className="flex items-start gap-3">
+        <PasswordField
+          id="password"
+          label="Password"
+          autoComplete="new-password"
+          placeholder="Create a password"
+          disabled={isBusy}
+          error={errors.password?.message}
+          hint={
+            <span className={password.length >= 8 ? "sf-requirement-met" : ""}>
+              <Check size={13} aria-hidden="true" /> Use at least 8 characters
+            </span>
+          }
+          {...register("password")}
+        />
+        <PasswordField
+          id="confirmPassword"
+          label="Confirm password"
+          autoComplete="new-password"
+          placeholder="Enter your password again"
+          disabled={isBusy}
+          error={errors.confirmPassword?.message}
+          {...register("confirmPassword")}
+        />
+        <div className="sf-terms">
+          <div>
             <Checkbox
               id="terms"
+              checked={termsAccepted}
+              disabled={isBusy}
+              aria-invalid={!!errors.termsAccepted}
+              aria-describedby={
+                errors.termsAccepted ? "terms-error" : undefined
+              }
               onCheckedChange={(checked) =>
                 setValue("termsAccepted", checked === true, {
                   shouldValidate: true,
+                  shouldDirty: true,
                 })
               }
             />
-
-            <Label
-              htmlFor="terms"
-              className="font-normal leading-5 text-muted-foreground"
-            >
+            <Label htmlFor="terms">
               I agree to the Terms of Service and Privacy Policy.
             </Label>
           </div>
-
           {errors.termsAccepted && (
-            <p className="mt-2 text-sm text-destructive">
+            <p id="terms-error" className="sf-field-error" role="alert">
               {errors.termsAccepted.message}
             </p>
           )}
         </div>
-
         {serverError && (
-          <div
-            className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
-            role="alert"
-          >
-            {serverError}
+          <div className="sf-alert" role="alert">
+            <CircleAlert size={18} aria-hidden="true" />
+            <span>{serverError}</span>
           </div>
         )}
-
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="h-12 w-full rounded-xl font-semibold"
-        >
-          {isSubmitting ? (
+        <Button type="submit" className="sf-primary-button" disabled={isBusy}>
+          {isBusy ? (
             <>
-              <Loader2 className="mr-2 size-4 animate-spin" />
-              Creating workspace...
+              <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+              {isNavigating ? "One more step…" : "Creating workspace…"}
             </>
           ) : (
-            "Create workspace"
+            <>
+              Create your workspace
+              <ArrowRight size={18} aria-hidden="true" />
+            </>
           )}
         </Button>
-
-        <p className="text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link
-            href="/login"
-            className="font-medium text-primary hover:underline"
-          >
-            Sign in
-          </Link>
+        <p className="sf-switch">
+          Already part of a team? <Link href="/login">Sign in</Link>
         </p>
       </form>
     </div>

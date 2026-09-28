@@ -1,209 +1,136 @@
 "use client";
 
 import { useState, useTransition } from "react";
-
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-import { Eye, EyeOff, Loader2, LockKeyhole, Mail } from "lucide-react";
-
+import {
+  ArrowRight,
+  CircleAlert,
+  Loader2,
+  Mail,
+  ShieldCheck,
+} from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
 import {
   loginSchema,
   type LoginFormValues,
 } from "@/src/features/auth/schemas/login.schema";
-
 import { loginWithEmail } from "@/src/features/auth/services/auth.client";
-
 import { getFirebaseAuthError } from "@/src/lib/utils/firebase-error";
+import { PasswordField } from "./password-field";
 
 export function LoginForm() {
   const router = useRouter();
   const [isNavigating, startTransition] = useTransition();
-
-  const [showPassword, setShowPassword] = useState(false);
-
   const [serverError, setServerError] = useState<string | null>(null);
-
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
-
   const isBusy = isSubmitting || isNavigating;
 
   async function onSubmit(values: LoginFormValues) {
     try {
       setServerError(null);
-
-      await loginWithEmail({
-        email: values.email,
-        password: values.password,
-      });
-
+      await loginWithEmail(values);
       startTransition(() => {
         router.replace("/dashboard");
       });
     } catch (error) {
       console.error("Login failed:", error);
-
       setServerError(getFirebaseAuthError(error));
     }
   }
 
   return (
-    <div className="w-full">
-      {/* Header */}
-
-      <div className="mb-8">
-        <p className="mb-2 text-sm font-medium text-primary">Welcome back</p>
-
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-          Sign in to ServiceFlow
-        </h1>
-
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          Access your workspace and manage customers, jobs, technicians and
-          operations.
-        </p>
+    <div className="sf-auth-page">
+      <div className="sf-form-heading">
+        <p className="sf-eyebrow">WELCOME TO YOUR WORKSPACE</p>
+        <h1>Good to have you back.</h1>
+        <p>Sign in and pick up where your team left off.</p>
       </div>
-
-      {/* Form */}
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-        {/* Email */}
-
-        <div className="space-y-2">
-          <Label htmlFor="email">Email address</Label>
-
-          <div className="relative">
-            <Mail
-              className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden="true"
-            />
-
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="sf-form"
+        noValidate
+        aria-busy={isBusy}
+      >
+        <div className="sf-field">
+          <Label htmlFor="email">Work email</Label>
+          <div className="sf-input-wrap">
+            <Mail size={18} className="sf-input-icon" aria-hidden="true" />
             <Input
               id="email"
               type="email"
               autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
               placeholder="you@company.com"
-              className="h-11 pl-10"
+              className="sf-input"
               disabled={isBusy}
               aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? "email-error" : undefined}
               {...register("email")}
             />
           </div>
-
           {errors.email && (
-            <p className="text-sm text-destructive" role="alert">
+            <p id="email-error" className="sf-field-error" role="alert">
               {errors.email.message}
             </p>
           )}
         </div>
-
-        {/* Password */}
-
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
-
-            <Link
-              href="/forgot-password"
-              className="text-sm font-medium text-primary transition-colors hover:text-primary/80"
-            >
+        <PasswordField
+          id="password"
+          label="Password"
+          autoComplete="current-password"
+          placeholder="Enter your password"
+          disabled={isBusy}
+          error={errors.password?.message}
+          action={
+            <Link href="/forgot-password" className="sf-text-link">
               Forgot password?
             </Link>
-          </div>
-
-          <div className="relative">
-            <LockKeyhole
-              className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden="true"
-            />
-
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="current-password"
-              placeholder="Enter your password"
-              className="h-11 px-10"
-              disabled={isBusy}
-              aria-invalid={!!errors.password}
-              {...register("password")}
-            />
-
-            <button
-              type="button"
-              onClick={() => setShowPassword((current) => !current)}
-              disabled={isBusy}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? (
-                <EyeOff className="size-4" />
-              ) : (
-                <Eye className="size-4" />
-              )}
-            </button>
-          </div>
-
-          {errors.password && (
-            <p className="text-sm text-destructive" role="alert">
-              {errors.password.message}
-            </p>
-          )}
-        </div>
-
-        {/* Server error */}
-
+          }
+          {...register("password")}
+        />
         {serverError && (
-          <div
-            className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"
-            role="alert"
-          >
-            {serverError}
+          <div className="sf-alert" role="alert">
+            <CircleAlert size={18} aria-hidden="true" />
+            <span>{serverError}</span>
           </div>
         )}
-
-        {/* Submit */}
-
-        <Button type="submit" className="h-11 w-full" disabled={isBusy}>
+        <Button type="submit" className="sf-primary-button" disabled={isBusy}>
           {isBusy ? (
             <>
-              <Loader2 className="mr-2 size-4 animate-spin" />
-              {isNavigating ? "Opening dashboard..." : "Signing in..."}
+              <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+              {isNavigating ? "Opening dashboard…" : "Signing in…"}
             </>
           ) : (
-            "Sign in"
+            <>
+              Sign in to workspace
+              <ArrowRight size={18} aria-hidden="true" />
+            </>
           )}
         </Button>
-
-        {/* Register */}
-
-        <p className="text-center text-sm text-muted-foreground">
-          Don&apos;t have a ServiceFlow workspace?{" "}
-          <Link
-            href="/register"
-            className="font-medium text-primary hover:underline"
-          >
-            Create account
+        <p className="sf-switch">
+          New to ServiceFlow?{" "}
+          <Link href="/register">
+            Create a workspace <ArrowRight size={14} aria-hidden="true" />
           </Link>
         </p>
       </form>
+      <div className="sf-form-note">
+        <ShieldCheck size={18} aria-hidden="true" />
+        <span>Your team&apos;s next great work starts here.</span>
+      </div>
     </div>
   );
 }
