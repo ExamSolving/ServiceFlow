@@ -1,19 +1,10 @@
-/* Scoped to the authentication shell; dashboard theme stays independent. */
+/* Auth layout styling; core colors come from the shared product theme. */
 .sf-auth {
-  --primary: #176c58;
-  --primary-foreground: #fff;
-  --foreground: #172e29;
-  --muted-foreground: #687772;
-  --border: #dce3de;
-  --input: #dce3de;
-  --ring: #4f9782;
-  --destructive: #bb3434;
-  --background: #fcfcf9;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   min-height: 100svh;
-  background: #fcfcf9;
-  color: #172e29;
+  background: var(--background);
+  color: var(--foreground);
   color-scheme: light;
 }
 .sf-auth a,
@@ -345,8 +336,8 @@
   flex-direction: column;
 }
 .sf-topbar {
-  min-height: 100px;
-  padding: 35px 40px;
+  min-height: 80px;
+  padding: 24px 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -371,9 +362,9 @@
 .sf-form-container {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 36px clamp(28px, 5vw, 88px) 60px;
+  padding: 24px clamp(28px, 5vw, 88px) 48px;
   outline: none;
 }
 .sf-form-content {
@@ -725,7 +716,7 @@
 }
 @media (max-width: 1100px) and (min-width: 801px) {
   .sf-topbar {
-    padding: 32px 26px;
+    padding: 24px 26px;
   }
   .sf-topbar-label {
     display: none;
@@ -766,8 +757,8 @@
     min-height: 100svh;
   }
   .sf-topbar {
-    min-height: 95px;
-    padding: 25px 28px;
+    min-height: 80px;
+    padding: 20px 28px;
     border-bottom: 1px solid #e8ece4;
   }
   .sf-topbar-label {
@@ -787,7 +778,7 @@
     color: #4e8961;
   }
   .sf-form-container {
-    padding: 48px 28px;
+    padding: 24px 28px 40px;
   }
   .sf-form-content {
     max-width: 440px;
@@ -804,8 +795,8 @@
 }
 @media (max-width: 420px) {
   .sf-topbar {
-    padding: 22px;
-    min-height: 85px;
+    padding: 18px 22px;
+    min-height: 72px;
   }
   .sf-security {
     font-size: 0;
@@ -816,7 +807,7 @@
     height: 17px;
   }
   .sf-form-container {
-    padding: 38px 22px;
+    padding: 24px 22px 32px;
   }
   .sf-form-heading h1 {
     font-size: 28px;

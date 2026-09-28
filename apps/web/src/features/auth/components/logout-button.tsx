@@ -1,37 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
-
+import { Loader2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { logout } from "@/src/features/auth/services/auth.api";
+import { useLogout } from "../hooks/use-logout";
 
 export function LogoutButton() {
-  const router = useRouter();
-
-  const [loading, setLoading] = useState(false);
-
-  async function handleLogout() {
-    try {
-      setLoading(true);
-
-      await logout();
-
-      router.replace("/login");
-      router.refresh();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
+  const { signOut, loading, error } = useLogout();
   return (
-    <Button variant="outline" onClick={handleLogout} disabled={loading}>
-      <LogOut className="mr-2 size-4" />
-
-      {loading ? "Signing out..." : "Sign out"}
-    </Button>
+    <div>
+      <Button variant="outline" onClick={signOut} disabled={loading}>
+        {loading ? (
+          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+        ) : (
+          <LogOut className="size-4" aria-hidden="true" />
+        )}
+        {loading ? "Signing out…" : "Sign out"}
+      </Button>
+      {error && (
+        <p className="mt-2 text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
