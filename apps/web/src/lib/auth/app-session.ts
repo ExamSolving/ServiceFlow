@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 
 import { adminDb } from "@/src/lib/firebase/admin";
 import { getFirebaseSession } from "@/src/lib/auth/session";
@@ -23,7 +24,8 @@ function isOrganizationRole(value: unknown): value is OrganizationRole {
   );
 }
 
-export async function getAppSession(): Promise<AppSession | null> {
+// Share this lookup across the layout and page only within the current render.
+export const getAppSession = cache(async (): Promise<AppSession | null> => {
   /*
    * 1. Verify Firebase session cookie
    */
@@ -70,10 +72,10 @@ export async function getAppSession(): Promise<AppSession | null> {
    */
   const membershipId = `${organizationId}_${uid}`;
 
-  const membershipSnapshot = await adminDb
-    .collection("memberships")
-    .doc(membershipId)
-    .get();
+  const [membershipSnapshot, organizationSnapshot] = await Promise.all([
+    adminDb.collection("memberships").doc(membershipId).get(),
+    adminDb.collection("organizations").doc(organizationId).get(),
+  ]);
 
   if (!membershipSnapshot.exists) {
     console.warn(`[AUTH] Membership not found: ${membershipId}`);
@@ -109,13 +111,8 @@ export async function getAppSession(): Promise<AppSession | null> {
   }
 
   /*
-   * 5. Load organization
+   * 5. Validate organization
    */
-  const organizationSnapshot = await adminDb
-    .collection("organizations")
-    .doc(organizationId)
-    .get();
-
   if (!organizationSnapshot.exists) {
     console.warn(`[AUTH] Organization not found: ${organizationId}`);
 
@@ -148,4 +145,4 @@ export async function getAppSession(): Promise<AppSession | null> {
 
     role: membership.role,
   };
-}
+});

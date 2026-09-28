@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -25,6 +25,7 @@ import { getFirebaseAuthError } from "@/src/lib/utils/firebase-error";
 
 export function LoginForm() {
   const router = useRouter();
+  const [isNavigating, startTransition] = useTransition();
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -43,6 +44,8 @@ export function LoginForm() {
     },
   });
 
+  const isBusy = isSubmitting || isNavigating;
+
   async function onSubmit(values: LoginFormValues) {
     try {
       setServerError(null);
@@ -52,8 +55,9 @@ export function LoginForm() {
         password: values.password,
       });
 
-      router.replace("/dashboard");
-      router.refresh();
+      startTransition(() => {
+        router.replace("/dashboard");
+      });
     } catch (error) {
       console.error("Login failed:", error);
 
@@ -98,7 +102,7 @@ export function LoginForm() {
               autoComplete="email"
               placeholder="you@company.com"
               className="h-11 pl-10"
-              disabled={isSubmitting}
+              disabled={isBusy}
               aria-invalid={!!errors.email}
               {...register("email")}
             />
@@ -137,7 +141,7 @@ export function LoginForm() {
               autoComplete="current-password"
               placeholder="Enter your password"
               className="h-11 px-10"
-              disabled={isSubmitting}
+              disabled={isBusy}
               aria-invalid={!!errors.password}
               {...register("password")}
             />
@@ -145,7 +149,7 @@ export function LoginForm() {
             <button
               type="button"
               onClick={() => setShowPassword((current) => !current)}
-              disabled={isSubmitting}
+              disabled={isBusy}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
@@ -177,11 +181,11 @@ export function LoginForm() {
 
         {/* Submit */}
 
-        <Button type="submit" className="h-11 w-full" disabled={isSubmitting}>
-          {isSubmitting ? (
+        <Button type="submit" className="h-11 w-full" disabled={isBusy}>
+          {isBusy ? (
             <>
               <Loader2 className="mr-2 size-4 animate-spin" />
-              Signing in...
+              {isNavigating ? "Opening dashboard..." : "Signing in..."}
             </>
           ) : (
             "Sign in"
