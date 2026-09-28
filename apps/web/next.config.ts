@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
     return [
       { source: "/login", destination: "/auth/login" },
       { source: "/dashboard", destination: "/protected/dashboard" },
+      {
+        source: "/settings/organization",
+        destination: "/protected/settings/organization",
+      },
     ];
   },
 };

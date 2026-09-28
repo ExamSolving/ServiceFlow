@@ -134,7 +134,7 @@ const NAVIGATION: NavigationGroup[] = [
         href: "/settings/organization",
         icon: "organization",
         permission: "manageOrganization",
-        available: false,
+        available: true,
       },
       {
         label: "Team",

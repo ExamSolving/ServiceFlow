@@ -3,12 +3,14 @@ import { cn } from "cn";
 
 export function SectionHeading({
   id,
+  eyebrow,
   title,
   description,
   action,
   className,
 }: {
   id?: string;
+  eyebrow?: ReactNode;
   title: ReactNode;
   description?: ReactNode;
   action?: ReactNode;
@@ -17,6 +19,11 @@ export function SectionHeading({
   return (
     <div className={cn("flex items-start justify-between gap-4", className)}>
       <div className="min-w-0">
+        {eyebrow && (
+          <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+            {eyebrow}
+          </p>
+        )}
         <h2
           id={id}
           className="font-heading text-sm font-semibold tracking-tight"
