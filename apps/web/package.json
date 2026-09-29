@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:dashboard": "node --experimental-strip-types --experimental-default-type=module scripts/test-dashboard.mjs",
-    "test:organization-settings": "node --experimental-strip-types --experimental-default-type=module scripts/test-organization-settings.mjs"
+    "test:organization-settings": "node --experimental-strip-types --experimental-default-type=module scripts/test-organization-settings.mjs",
+    "test:customers": "node --experimental-strip-types --experimental-default-type=module scripts/test-customers.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

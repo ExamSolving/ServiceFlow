@@ -113,7 +113,11 @@ for (const [role, allowed] of Object.entries(expected)) {
     JSON.stringify(
       items.filter((item) => item.available).map((item) => item.href),
     ),
-    role === "OWNER" ? '["/dashboard","/settings/organization"]' : '["/dashboard"]',
+    JSON.stringify([
+      "/dashboard",
+      ...(allowed.includes("manageCustomers") ? ["/customers"] : []),
+      ...(allowed.includes("manageOrganization") ? ["/settings/organization"] : []),
+    ]),
   );
   assert.equal(new Set(items.map((item) => item.href)).size, items.length);
 }

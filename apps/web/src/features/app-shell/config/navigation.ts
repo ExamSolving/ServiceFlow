@@ -49,7 +49,7 @@ const NAVIGATION: NavigationGroup[] = [
         href: "/customers",
         icon: "customers",
         permission: "manageCustomers",
-        available: false,
+        available: true,
       },
       {
         label: "Technicians",
