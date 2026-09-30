@@ -21,6 +21,7 @@ export const PERMISSION_ROLES = {
   manageCustomers: OPERATIONS,
   manageTechnicians: ["OWNER", "ADMIN", "MANAGER"],
   manageServiceTypes: ["OWNER", "ADMIN", "MANAGER"],
+  manageServiceRequests: OPERATIONS,
   dispatchJobs: OPERATIONS,
   viewFinancials: ["OWNER", "ADMIN", "ACCOUNTANT"],
   manageInventory: ["OWNER", "ADMIN", "MANAGER"],
