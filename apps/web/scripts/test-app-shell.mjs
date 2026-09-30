@@ -42,6 +42,7 @@ const expected = {
     "viewDashboard",
     "manageCustomers",
     "manageTechnicians",
+    "manageServiceTypes",
     "dispatchJobs",
     "viewFinancials",
     "manageInventory",
@@ -52,6 +53,7 @@ const expected = {
     "viewDashboard",
     "manageCustomers",
     "manageTechnicians",
+    "manageServiceTypes",
     "dispatchJobs",
     "viewFinancials",
     "manageInventory",
@@ -61,6 +63,7 @@ const expected = {
     "viewDashboard",
     "manageCustomers",
     "manageTechnicians",
+    "manageServiceTypes",
     "dispatchJobs",
     "manageInventory",
   ],
@@ -116,6 +119,8 @@ for (const [role, allowed] of Object.entries(expected)) {
     JSON.stringify([
       "/dashboard",
       ...(allowed.includes("manageCustomers") ? ["/customers"] : []),
+      ...(allowed.includes("manageTechnicians") ? ["/technicians"] : []),
+      ...(allowed.includes("manageServiceTypes") ? ["/service-types"] : []),
       ...(allowed.includes("manageOrganization") ? ["/settings/organization"] : []),
     ]),
   );

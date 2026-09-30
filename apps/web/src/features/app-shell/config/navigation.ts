@@ -5,6 +5,7 @@ export type NavigationIcon =
   | "dashboard"
   | "customers"
   | "technicians"
+  | "service-types"
   | "requests"
   | "jobs"
   | "schedule"
@@ -56,7 +57,14 @@ const NAVIGATION: NavigationGroup[] = [
         href: "/technicians",
         icon: "technicians",
         permission: "manageTechnicians",
-        available: false,
+        available: true,
+      },
+      {
+        label: "Service types",
+        href: "/service-types",
+        icon: "service-types",
+        permission: "manageServiceTypes",
+        available: true,
       },
       {
         label: "Service requests",

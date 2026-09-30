@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test:dashboard": "node --experimental-strip-types --experimental-default-type=module scripts/test-dashboard.mjs",
     "test:organization-settings": "node --experimental-strip-types --experimental-default-type=module scripts/test-organization-settings.mjs",
-    "test:customers": "node --experimental-strip-types --experimental-default-type=module scripts/test-customers.mjs"
+    "test:customers": "node --experimental-strip-types --experimental-default-type=module scripts/test-customers.mjs",
+    "test:technicians": "node --experimental-strip-types --experimental-default-type=module scripts/test-technicians.mjs",
+    "test:service-types": "node --experimental-strip-types --experimental-default-type=module scripts/test-service-types.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
