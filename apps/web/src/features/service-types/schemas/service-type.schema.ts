@@ -16,7 +16,7 @@ export function normalizeServiceTypeName(value: string) {
 export const serviceTypeFormSchema = z.object({
   name: z.string().trim().min(2, "Enter at least 2 characters.").max(120, "Use 120 characters or fewer.")
     .refine(singleLine, "Enter a name on one line.")
-    .refine(searchableName, "Use a shorter name with valid text characters."),
+    .refine(searchableName, "Use a shorter name with valid text characters.").transform((value) => value.replace(/\s+/g, " ")),
   description: z.string().trim().max(500, "Use 500 characters or fewer.")
     .refine(safeDescription, "Remove unsupported control characters."),
   estimatedDurationMinutes: z.number().int("Enter a whole number of minutes.")

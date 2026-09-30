@@ -24,7 +24,7 @@ function moduleLoader(mocks = {}) {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
     }).outputText;
     vm.runInNewContext(source, {
-      module: moduleRecord, exports: moduleRecord.exports, Buffer, URL, Request, Response, Headers, Date, Intl,
+      module: moduleRecord, exports: moduleRecord.exports, Buffer, URL, Request, Response, Headers, Date, Intl, TextDecoder,
       console: mocks.console ?? console,
       require(name) {
         if (Object.hasOwn(mocks, name)) return mocks[name];
@@ -284,7 +284,7 @@ function assertNoWrites(db) {
 
 function assertTenantQueries(db, organizationId = owner.organizationId) {
   for (const query of db.queries.filter((entry) => entry.path === "serviceTypes")) {
-    assert.ok(query.filters.some(({ field, operator, value }) => field === "organizationId" && operator === "==" && value === organizationId), JSON.stringify(query));
+    assert.ok(query.filters.some(({ field, operator, value }) => field === "organizationId" && operator === "==" && value === organizationId), JSON.stringify(query.filters));
   }
 }
 
@@ -476,7 +476,7 @@ test("failed renames leave the original record, both name reservations and audit
   assert.equal(db.values("auditLogs").length, 1);
 });
 
-test("API rejects cross-site mutations and unauthenticated or forbidden roles", async () => {
+test("API rejects cross-site mutations and forbidden roles", async () => {
   const { load, state, db } = fixture();
   const api = load("src/features/service-types/services/service-type-api.ts");
   const requestFor = ({ origin = "https://serviceflow.example", site = "same-origin", host = "serviceflow.example", protocol = "https" } = {}) => {
@@ -488,12 +488,49 @@ test("API rejects cross-site mutations and unauthenticated or forbidden roles", 
   assert.equal(api.isServiceTypeRequestSameOrigin(requestFor()), true);
   assert.equal(api.isServiceTypeRequestSameOrigin(requestFor({ origin: "https://evil.example" })), false);
   assert.equal(api.isServiceTypeRequestSameOrigin(requestFor({ site: "cross-site" })), false);
-  assert.equal(api.isServiceTypeRequestSameOrigin(requestFor({ origin: undefined, site: "same-site" })), false);
+  assert.equal(api.isServiceTypeRequestSameOrigin(requestFor({ origin: null, site: "same-site" })), false);
   state.session = { ...owner, role: "TECHNICIAN" };
   const routes = load("src/app/api/service-types/route.ts");
   const response = await routes.POST(requestFor());
   assert.ok([401, 403, 404].includes(response.status));
   assertNoWrites(db);
+});
+
+test("HTTP boundaries validate streamed bodies and preserve authentication failures", async () => {
+  const { load, state, db } = fixture();
+  const route = load("src/app/api/service-types/route.ts");
+  const patch = load("src/app/api/service-types/[serviceTypeId]/route.ts");
+  function request(body, headers = {}) {
+    const value = new Request("https://serviceflow.example/api/service-types", { method: "POST", headers: { host: "serviceflow.example", "x-forwarded-proto": "https", origin: "https://serviceflow.example", "content-type": "application/json", ...headers }, body: typeof body === "string" ? body : JSON.stringify(body) });
+    value.nextUrl = new URL(value.url);
+    return value;
+  }
+  state.authError = new Error("LOGIN_REDIRECT");
+  await assert.rejects(route.POST(request(createInput)), (error) => error === state.authError);
+  state.authError = null;
+  assert.equal((await route.POST(request("{bad"))).status, 400);
+  assert.equal((await route.POST(request(createInput, { "content-type": "text/plain" }))).status, 415);
+  assert.equal((await route.POST(request("x".repeat(17000)))).status, 413);
+  assert.equal((await route.POST(request({ ...createInput, organizationId: "org-b" }))).status, 400);
+  assertNoWrites(db);
+  const createdResponse = await route.POST(request(createInput));
+  assert.equal(createdResponse.status, 201);
+  assert.equal(createdResponse.headers.get("cache-control"), "no-store");
+  const { serviceType } = await createdResponse.json();
+  const duplicate = await route.POST(request({ ...createInput, requestId: randomUUID() }));
+  assert.equal(duplicate.status, 409);
+  assert.equal((await duplicate.json()).code, "DUPLICATE_NAME");
+  const context = { params: Promise.resolve({ serviceTypeId: serviceType.id }) };
+  const updated = await patch.PATCH(request({ ...form, isActive: false, version: 1 }), context);
+  assert.equal(updated.status, 200);
+  assert.equal((await patch.PATCH(request({ ...form, version: 1 }), context)).status, 409);
+  state.session = { ...owner, organizationId: "org-b" };
+  assert.equal((await patch.PATCH(request({ ...form, version: 2 }), context)).status, 404);
+  state.session = owner;
+  db.failNextCommit = true;
+  const failed = await route.POST(request({ ...createInput, name: "New service", requestId: randomUUID() }));
+  assert.equal(failed.status, 500);
+  assert.ok(!(await failed.text()).includes("secret database"));
 });
 
 let passed = 0;
