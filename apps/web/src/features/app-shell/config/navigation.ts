@@ -70,8 +70,8 @@ const NAVIGATION: NavigationGroup[] = [
         label: "Service requests",
         href: "/service-requests",
         icon: "requests",
-        permission: "dispatchJobs",
-        available: false,
+        permission: "manageServiceRequests",
+        available: true,
       },
       {
         label: "Jobs",
