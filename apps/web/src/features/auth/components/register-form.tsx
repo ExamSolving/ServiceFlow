@@ -23,7 +23,7 @@ import {
   type RegisterFormValues,
 } from "@/src/features/auth/schemas/register.schema";
 import { registerOwner } from "@/src/features/auth/services/auth.client";
-import { getFirebaseAuthError } from "@/src/lib/utils/firebase-error";
+import { getAuthErrorMessage } from "@/src/lib/utils/firebase-error";
 import { PasswordField } from "./password-field";
 
 export function RegisterForm() {
@@ -67,7 +67,7 @@ export function RegisterForm() {
       });
     } catch (error) {
       console.error("Registration failed:", error);
-      setServerError(getFirebaseAuthError(error));
+      setServerError(getAuthErrorMessage(error));
     }
   }
 

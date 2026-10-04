@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import type { DashboardData } from "../types/dashboard";
 import { DashboardFilters } from "./dashboard-filters";
+import { DashboardFinanceCard } from "./dashboard-finance-card";
 import { DashboardJobList } from "./dashboard-job-list";
 import { DashboardKpiGrid } from "./dashboard-kpi-grid";
 import { DashboardPendingCard } from "./dashboard-pending-card";
@@ -32,6 +33,7 @@ export function DashboardView({ data }: { data: DashboardData }) {
   const team = data.team?.status === "ready" ? data.team.data : null;
   const requests =
     data.requests?.status === "ready" ? data.requests.data : null;
+  const finance = data.finance?.status === "ready" ? data.finance.data : null;
   const hasOperationalSections = Boolean(
     data.operations || data.team || data.requests || data.finance,
   );
@@ -88,6 +90,9 @@ export function DashboardView({ data }: { data: DashboardData }) {
       {data.requests?.status !== "ready" && (
         <SectionFeedback section={data.requests} />
       )}
+      {data.finance?.status !== "ready" && (
+        <SectionFeedback section={data.finance} />
+      )}
       {operations && (
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.65fr)]">
           <DashboardJobList
@@ -117,6 +122,7 @@ export function DashboardView({ data }: { data: DashboardData }) {
         recentJobs
       )}
       {!operations && team && <DashboardTeamCard team={team} />}
+      {finance && <DashboardFinanceCard finance={finance} />}
       {requests?.openCount === 0 && operations && (
         <p className="sr-only">There are no open service requests.</p>
       )}

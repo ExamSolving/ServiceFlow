@@ -1,55 +1,26 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 
-import { requirePermission } from "@/src/lib/auth/authorization";
+import { getApiSession } from "@/src/lib/http/api-session";
+import { jsonError, parseJsonBody } from "@/src/lib/http/json";
+import { isSameOrigin } from "@/src/lib/http/same-origin";
+import { logger } from "@/src/lib/observability/logger";
 import { updateOrganizationSettings } from "@/src/features/organization-settings/repositories/organization-settings.repository";
 import { organizationSettingsFormSchema } from "@/src/features/organization-settings/schemas/organization-settings.schema";
 
-function isSameOrigin(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  return !origin || origin === request.nextUrl.origin;
-}
-
 export async function PATCH(request: NextRequest) {
-  if (!isSameOrigin(request)) {
-    return NextResponse.json({ message: "Request could not be verified." }, { status: 403 });
-  }
-
-  // Keep framework auth failures outside the database error boundary so an
-  // unauthorized caller receives the normal protected response.
-  const session = await requirePermission("manageOrganization");
-
-  let json: unknown;
+  if (!isSameOrigin(request)) return jsonError("Request could not be verified.", 403);
+  const auth = await getApiSession("manageOrganization", "Only the workspace owner can change organization settings.");
+  if (!auth.ok) return auth.response;
+  const parsed = await parseJsonBody(request, organizationSettingsFormSchema, { resource: "organization settings" });
+  if (!parsed.success) return parsed.response;
   try {
-    json = await request.json();
-  } catch {
-    return NextResponse.json(
-      { message: "Enter valid organization settings and try again." },
-      { status: 400 },
-    );
-  }
-
-  const parsed = organizationSettingsFormSchema.safeParse(json);
-  if (!parsed.success) {
-    return NextResponse.json(
-      {
-        message: "Check the highlighted fields and try again.",
-        fieldErrors: parsed.error.flatten().fieldErrors,
-      },
-      { status: 400 },
-    );
-  }
-
-  try {
-    const result = await updateOrganizationSettings(session, parsed.data);
-    return NextResponse.json({
-      success: true,
-      changedFields: result.changedFields,
-    });
+    const result = await updateOrganizationSettings(auth.session, parsed.data);
+    revalidatePath("/protected/settings/organization");
+    revalidatePath("/protected/dashboard");
+    return NextResponse.json({ success: true, changedFields: result.changedFields }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    console.error("[ORGANIZATION_SETTINGS] Update failed", error);
-    return NextResponse.json(
-      { message: "We couldn’t save your organization settings. Please try again." },
-      { status: 500 },
-    );
+    logger.error("ORGANIZATION_SETTINGS", "Update failed", error);
+    return jsonError("We couldn’t save your organization settings. Please try again.", 500);
   }
 }

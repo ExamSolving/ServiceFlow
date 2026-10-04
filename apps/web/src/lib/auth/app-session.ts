@@ -3,6 +3,7 @@ import { cache } from "react";
 
 import { adminDb } from "@/src/lib/firebase/admin";
 import { getFirebaseSession } from "@/src/lib/auth/session";
+import { logger } from "@/src/lib/observability/logger";
 
 import type {
   AppSession,
@@ -24,125 +25,119 @@ function isOrganizationRole(value: unknown): value is OrganizationRole {
   );
 }
 
-// Share this lookup across the layout and page only within the current render.
-export const getAppSession = cache(async (): Promise<AppSession | null> => {
-  /*
-   * 1. Verify Firebase session cookie
-   */
-  const firebaseSession = await getFirebaseSession();
+/** Why a signed-in Firebase user has no usable ServiceFlow session. */
+export type AccountUnavailableReason =
+  | "PROFILE_MISSING"
+  | "USER_INACTIVE"
+  | "NO_ORGANIZATION"
+  | "MEMBERSHIP_MISSING"
+  | "MEMBERSHIP_INACTIVE"
+  | "MEMBERSHIP_INVALID"
+  | "ORGANIZATION_MISSING"
+  | "ORGANIZATION_INACTIVE";
 
-  if (!firebaseSession) {
-    return null;
-  }
+export type AppSessionState =
+  | { kind: "anonymous" }
+  | { kind: "unavailable"; reason: AccountUnavailableReason }
+  | { kind: "active"; session: AppSession };
 
-  const uid = firebaseSession.uid;
+export interface FirebaseIdentity {
+  uid: string;
+  email?: string;
+  name?: string;
+}
 
-  /*
-   * 2. Load ServiceFlow user profile
-   */
+/**
+ * Resolve the application session for a verified Firebase identity:
+ * user profile → default organization → membership → organization.
+ * Shared by cookie-based requests and by the session route, which must
+ * refuse to mint a cookie for an account that cannot be resolved.
+ */
+export async function resolveAppSession(
+  identity: FirebaseIdentity,
+): Promise<{ session: AppSession } | { reason: AccountUnavailableReason }> {
+  const { uid } = identity;
+
   const userSnapshot = await adminDb.collection("users").doc(uid).get();
-
   if (!userSnapshot.exists) {
-    console.warn(`[AUTH] ServiceFlow user not found for uid: ${uid}`);
-
-    return null;
+    logger.warn("AUTH", "ServiceFlow user not found", { uid });
+    return { reason: "PROFILE_MISSING" };
   }
-
   const user = userSnapshot.data();
-
   if (!user || user.isActive !== true) {
-    console.warn(`[AUTH] User is inactive: ${uid}`);
-
-    return null;
+    logger.warn("AUTH", "User is inactive", { uid });
+    return { reason: "USER_INACTIVE" };
   }
 
-  /*
-   * 3. Resolve current organization
-   */
   const organizationId = user.defaultOrganizationId;
-
   if (typeof organizationId !== "string" || !organizationId) {
-    console.warn(`[AUTH] User has no default organization: ${uid}`);
-
-    return null;
+    logger.warn("AUTH", "User has no default organization", { uid });
+    return { reason: "NO_ORGANIZATION" };
   }
 
-  /*
-   * 4. Resolve membership
-   */
   const membershipId = `${organizationId}_${uid}`;
-
   const [membershipSnapshot, organizationSnapshot] = await Promise.all([
     adminDb.collection("memberships").doc(membershipId).get(),
     adminDb.collection("organizations").doc(organizationId).get(),
   ]);
 
   if (!membershipSnapshot.exists) {
-    console.warn(`[AUTH] Membership not found: ${membershipId}`);
-
-    return null;
+    logger.warn("AUTH", "Membership not found", { membershipId });
+    return { reason: "MEMBERSHIP_MISSING" };
   }
-
   const membership = membershipSnapshot.data();
-
   if (!membership || membership.status !== "ACTIVE") {
-    console.warn(`[AUTH] Membership inactive: ${membershipId}`);
-
-    return null;
+    logger.warn("AUTH", "Membership inactive", { membershipId });
+    return { reason: "MEMBERSHIP_INACTIVE" };
   }
-
-  /*
-   * Prevent malformed/cross-tenant
-   * membership records.
-   */
-  if (
-    membership.userId !== uid ||
-    membership.organizationId !== organizationId
-  ) {
-    console.error(`[AUTH] Invalid membership relation: ${membershipId}`);
-
-    return null;
+  // Prevent malformed or cross-tenant membership records.
+  if (membership.userId !== uid || membership.organizationId !== organizationId) {
+    logger.error("AUTH", "Invalid membership relation", undefined, { membershipId });
+    return { reason: "MEMBERSHIP_INVALID" };
   }
-
   if (!isOrganizationRole(membership.role)) {
-    console.error(`[AUTH] Invalid role for membership: ${membershipId}`);
-
-    return null;
+    logger.error("AUTH", "Invalid role for membership", undefined, { membershipId });
+    return { reason: "MEMBERSHIP_INVALID" };
   }
 
-  /*
-   * 5. Validate organization
-   */
   if (!organizationSnapshot.exists) {
-    console.warn(`[AUTH] Organization not found: ${organizationId}`);
-
-    return null;
+    logger.warn("AUTH", "Organization not found", { organizationId });
+    return { reason: "ORGANIZATION_MISSING" };
   }
-
   const organization = organizationSnapshot.data();
-
   if (!organization || organization.status !== "ACTIVE") {
-    console.warn(`[AUTH] Organization inactive: ${organizationId}`);
-
-    return null;
+    logger.warn("AUTH", "Organization inactive", { organizationId });
+    return { reason: "ORGANIZATION_INACTIVE" };
   }
 
-  /*
-   * 6. Return our application-level session
-   */
   return {
-    uid,
-
-    email: user.email ?? firebaseSession.email ?? "",
-
-    displayName: user.displayName ?? firebaseSession.name ?? "",
-
-    organizationId,
-
-    organizationName: organization.name ?? "",
-
-    membershipId,
-
-    role: membership.role,
+    session: {
+      uid,
+      email: user.email ?? identity.email ?? "",
+      displayName: user.displayName ?? identity.name ?? "",
+      organizationId,
+      organizationName: organization.name ?? "",
+      membershipId,
+      role: membership.role,
+    },
   };
+}
+
+// Shared across the layout, page and handlers only within the current render.
+export const getAppSessionState = cache(async (): Promise<AppSessionState> => {
+  const firebaseSession = await getFirebaseSession();
+  if (!firebaseSession) return { kind: "anonymous" };
+  const resolved = await resolveAppSession({
+    uid: firebaseSession.uid,
+    email: firebaseSession.email,
+    name: typeof firebaseSession.name === "string" ? firebaseSession.name : undefined,
+  });
+  return "session" in resolved
+    ? { kind: "active", session: resolved.session }
+    : { kind: "unavailable", reason: resolved.reason };
+});
+
+export const getAppSession = cache(async (): Promise<AppSession | null> => {
+  const state = await getAppSessionState();
+  return state.kind === "active" ? state.session : null;
 });

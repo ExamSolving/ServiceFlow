@@ -21,7 +21,7 @@ import {
   type ForgotPasswordFormValues,
 } from "@/src/features/auth/schemas/forgot-password.schema";
 import { requestPasswordReset } from "@/src/features/auth/services/auth.client";
-import { getFirebaseAuthError } from "@/src/lib/utils/firebase-error";
+import { getAuthErrorMessage } from "@/src/lib/utils/firebase-error";
 
 export function ForgotPasswordForm() {
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
@@ -43,7 +43,7 @@ export function ForgotPasswordForm() {
       setSubmittedEmail(values.email.trim());
     } catch (error) {
       console.error("Password reset failed:", error);
-      setServerError(getFirebaseAuthError(error));
+      setServerError(getAuthErrorMessage(error));
     }
   }
 

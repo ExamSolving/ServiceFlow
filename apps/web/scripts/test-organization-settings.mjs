@@ -79,7 +79,7 @@ const route = await readFile(
 );
 assert.match(route, /origin/, "mutation route must verify same-origin requests");
 assert.match(route, /updateOrganizationSettings/, "route must use the server repository");
-assert.match(route, /requirePermission\("manageOrganization"\)/, "route must authorize owner access");
-assert.match(route, /organizationSettingsFormSchema\.safeParse/, "route must validate input");
+assert.match(route, /getApiSession\("manageOrganization"/, "route must authorize owner access with a JSON 401/403 contract");
+assert.match(route, /parseJsonBody\(request, organizationSettingsFormSchema/, "route must validate input through the shared JSON body parser");
 
 console.log("PASS: organization settings schemas, tenant checks, atomic audit writes, and mutation boundary.");

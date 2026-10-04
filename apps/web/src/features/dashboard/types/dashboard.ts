@@ -38,7 +38,14 @@ export interface DashboardOperations {
   newJobs: number;
 }
 export interface DashboardTeam { activeCount: number; technicians: DashboardTechnician[] }
-export interface DashboardFinance { pendingQuotations: number; outstandingInvoices: number }
+export interface DashboardFinance {
+  currency: string;
+  pendingQuotations: number;
+  openInvoices: number;
+  outstandingAmount: number;
+  overdueInvoices: number;
+  collectedLast30Days: number;
+}
 export interface DashboardData {
   date: string;
   today: string;

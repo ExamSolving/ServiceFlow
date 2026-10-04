@@ -159,6 +159,8 @@ class MemoryDocument {
 function compare(a, b) {
   const left = a instanceof Date ? a.getTime() : a instanceof MemoryTimestamp ? a.toMillis() : a;
   const right = b instanceof Date ? b.getTime() : b instanceof MemoryTimestamp ? b.toMillis() : b;
+  // Firestore orders null before every other value and never equates it with one.
+  if (left === null || right === null) return left === right ? 0 : left === null ? -1 : 1;
   return left < right ? -1 : left > right ? 1 : 0;
 }
 class MemoryQuery {
@@ -180,6 +182,8 @@ class MemoryQuery {
     let rows = this.db.values(this.path);
     const fieldValue = (row, field) => field === "__name__" ? row.path.split("/").at(-1) : row.data[field];
     rows = rows.filter((row) => this.filters.every(({ field, operator, value }) => {
+      // Like Firestore, documents without the field never match a filter on it.
+      if (fieldValue(row, field) === undefined) return false;
       const relation = compare(fieldValue(row, field), value);
       if (operator === "==") return relation === 0;
       if (operator === ">=") return relation >= 0;

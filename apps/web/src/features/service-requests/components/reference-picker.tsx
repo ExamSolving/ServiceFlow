@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, LoaderCircle, Search } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -11,29 +11,32 @@ import { Label } from "@/components/ui/label";
 import { serviceRequestIdSchema } from "../schemas/service-request.schema";
 import type { ServiceRequestOption } from "../types/service-request";
 
-const optionsSchema = z.object({
-  options: z.array(z.object({ id: serviceRequestIdSchema, name: z.string().min(1), secondary: z.string().optional() })),
-  nextCursor: z.string().nullable(),
-});
+export const referenceOptionSchema = z.object({ id: serviceRequestIdSchema, name: z.string().min(1), secondary: z.string().optional() });
 
-type Kind = "customers" | "serviceTypes";
+type Kind = "customers" | "serviceTypes" | "technicians" | "products";
 type Status = { kind: "idle" | "loading" | "error" | "session"; message?: string };
 
 // Searches the tenant's active customers or service types through the server, so the
 // browser never receives records outside the session's organization.
-export function ReferencePicker({ kind, fieldId, label, noun, hint, selected, onSelect, disabled, error }: {
+export function ReferencePicker<T extends ServiceRequestOption = ServiceRequestOption>({ kind, endpoint = "/api/service-requests/options", fieldId, label, noun, hint, selected, onSelect, disabled, error, optionSchema, required = true }: {
   kind: Kind;
+  /** Options endpoint; defaults to the service request pickers. Must return { options, nextCursor }. */
+  endpoint?: string;
   fieldId: string;
   label: string;
   noun: string;
   hint: string;
-  selected: ServiceRequestOption | null;
-  onSelect: (option: ServiceRequestOption | null) => void;
+  selected: T | null;
+  onSelect: (option: T | null) => void;
   disabled?: boolean;
   error?: string;
+  /** Validates each option when the endpoint returns more than id, name and secondary. */
+  optionSchema?: z.ZodType<T>;
+  required?: boolean;
 }) {
+  const optionsSchema = useMemo(() => z.object({ options: z.array(optionSchema ?? (referenceOptionSchema as unknown as z.ZodType<T>)), nextCursor: z.string().nullable() }), [optionSchema]);
   const [query, setQuery] = useState("");
-  const [options, setOptions] = useState<ServiceRequestOption[]>([]);
+  const [options, setOptions] = useState<T[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [loaded, setLoaded] = useState(false);
@@ -50,7 +53,7 @@ export function ReferencePicker({ kind, fieldId, label, noun, hint, selected, on
     try {
       const params = new URLSearchParams({ kind, q: search });
       if (cursor) params.set("cursor", cursor);
-      const response = await fetch(`/api/service-requests/options?${params.toString()}`, { signal: current.signal, headers: { accept: "application/json" } });
+      const response = await fetch(`${endpoint}?${params.toString()}`, { signal: current.signal, headers: { accept: "application/json" } });
       if (current.signal.aborted) return;
       if (response.redirected || response.status === 401) {
         setStatus({ kind: "session", message: "Your session has expired. Sign in again in another tab, then search again." });
@@ -84,7 +87,7 @@ export function ReferencePicker({ kind, fieldId, label, noun, hint, selected, on
   if (selected) {
     return (
       <div className="space-y-2">
-        <Label htmlFor={`${fieldId}-selected`}>{label} <span aria-hidden="true" className="text-muted-foreground">*</span></Label>
+        <Label htmlFor={`${fieldId}-selected`}>{label} {required && <span aria-hidden="true" className="text-muted-foreground">*</span>}</Label>
         <div id={`${fieldId}-selected`} className="flex flex-col gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3 sm:flex-row sm:items-center sm:justify-between" aria-describedby={error ? errorId : hintId}>
           <div className="min-w-0">
             <p className="flex items-center gap-1.5 font-medium break-words"><Check aria-hidden="true" className="size-4 shrink-0 text-primary" />{selected.name}</p>
@@ -100,7 +103,7 @@ export function ReferencePicker({ kind, fieldId, label, noun, hint, selected, on
   const busy = status.kind === "loading";
   return (
     <div className="space-y-2">
-      <Label htmlFor={searchId}>{label} <span aria-hidden="true" className="text-muted-foreground">*</span></Label>
+      <Label htmlFor={searchId}>{label} {required && <span aria-hidden="true" className="text-muted-foreground">*</span>}</Label>
       <div className="relative">
         <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-3 z-10 size-4 text-muted-foreground" />
         <Input id={searchId} type="search" autoComplete="off" maxLength={120} value={query} disabled={disabled} placeholder={`Search ${noun}s by name…`} className="pl-9"

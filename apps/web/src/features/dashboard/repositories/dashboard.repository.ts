@@ -3,9 +3,11 @@ import "server-only";
 import { adminDb } from "@/src/lib/firebase/admin";
 import { hasPermission } from "@/src/lib/auth/permissions";
 import type { AppSession } from "@/src/features/auth/types/app-session";
-import type { DocumentData, Query, QueryDocumentSnapshot } from "firebase-admin/firestore";
+import { AggregateField, type DocumentData, type Query, type QueryDocumentSnapshot } from "firebase-admin/firestore";
+import { readBillingSettings } from "@/src/features/billing/repositories/billing-settings";
+import { roundMoney } from "@/src/lib/billing/money";
 import { dashboardJobSchema, dashboardSettingsSchema, dashboardTechnicianSchema } from "../schemas/dashboard.schema";
-import type { DashboardJob, DashboardOperations, DashboardTeam } from "../types/dashboard";
+import type { DashboardFinance, DashboardJob, DashboardOperations, DashboardTeam } from "../types/dashboard";
 
 function tenantQuery(collection: string, session: AppSession): Query<DocumentData> {
   if (!session.organizationId) throw new Error("Missing trusted tenant context");
@@ -16,6 +18,15 @@ function assertOrganization(organizationId: string, session: AppSession) {
 }
 function requireOperations(session: AppSession) {
   if (!hasPermission(session.role,"dispatchJobs")) throw new Error("Dashboard operation access denied");
+}
+function requireFinance(session: AppSession) {
+  if (!hasPermission(session.role,"viewFinancials")) throw new Error("Dashboard finance access denied");
+}
+async function sum(query: Query<DocumentData>, field: string): Promise<number> {
+  const result = await query.aggregate({ total: AggregateField.sum(field) }).get();
+  const value = result.data().total;
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) throw new Error("Invalid aggregate response");
+  return roundMoney(value);
 }
 async function count(query: Query<DocumentData>): Promise<number> {
   const result = await query.count().get();
@@ -77,4 +88,17 @@ export async function readTeam(session:AppSession):Promise<DashboardTeam>{
 export async function readOpenRequests(session:AppSession):Promise<{openCount:number}>{
   requireOperations(session);
   return {openCount:await count(tenantQuery("serviceRequests",session).where("status","in",["NEW","REVIEWING"]))};
+}
+
+/** Billing snapshot: what is quoted, what is owed, what came in. Dates are calendar dates in the organization timezone. */
+export async function readFinance(session:AppSession, today:string, since:Date):Promise<DashboardFinance>{
+  requireFinance(session);
+  const open=tenantQuery("invoices",session).where("status","in",["ISSUED","PARTIALLY_PAID"]);
+  const [settings,pendingQuotations,openInvoices,outstandingAmount,overdueInvoices,collectedLast30Days]=await Promise.all([
+    readBillingSettings(session.organizationId),
+    count(tenantQuery("quotations",session).where("status","==","SENT")),
+    count(open),sum(open,"balanceDue"),count(open.where("dueAt","<",today)),
+    sum(tenantQuery("payments",session).where("paidAt",">=",since),"amount"),
+  ]);
+  return {currency:settings.currency,pendingQuotations,openInvoices,outstandingAmount,overdueInvoices,collectedLast30Days};
 }

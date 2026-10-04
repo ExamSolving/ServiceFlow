@@ -1,5 +1,6 @@
 import { Activity, CalendarCheck2, ClipboardList, UsersRound } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { formatMoney } from "@/src/lib/billing/money";
 import type { DashboardData } from "../types/dashboard";
 
 function Kpi({
@@ -35,7 +36,8 @@ export function DashboardKpiGrid({ data }: { data: DashboardData }) {
   const operations = data.operations?.status === "ready" ? data.operations.data : null;
   const team = data.team?.status === "ready" ? data.team.data : null;
   const requests = data.requests?.status === "ready" ? data.requests.data : null;
-  const failed = [data.operations, data.team, data.requests].filter(
+  const finance = data.finance?.status === "ready" ? data.finance.data : null;
+  const failed = [data.operations, data.team, data.requests, data.finance].filter(
     (section) => section?.status === "error",
   ).length;
 
@@ -75,12 +77,20 @@ export function DashboardKpiGrid({ data }: { data: DashboardData }) {
             icon={ClipboardList}
           />
         )}
-        {data.finance?.status === "unavailable" && (
+        {finance && (
+          <Kpi
+            label="Outstanding"
+            value={formatMoney(finance.outstandingAmount, finance.currency)}
+            detail={`${finance.openInvoices} open ${finance.openInvoices === 1 ? "invoice" : "invoices"}${finance.overdueInvoices ? ` · ${finance.overdueInvoices} overdue` : ""}`}
+            icon={Activity}
+          />
+        )}
+        {data.finance && data.finance.status !== "ready" && (
           <Card className="p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-medium text-muted-foreground">
-                  Billing snapshot
+                  Outstanding
                 </p>
                 <p className="mt-3 font-heading text-3xl font-semibold tracking-tight">
                   —
@@ -91,7 +101,7 @@ export function DashboardKpiGrid({ data }: { data: DashboardData }) {
               </span>
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
-              Available after billing setup
+              Billing summary unavailable
             </p>
           </Card>
         )}

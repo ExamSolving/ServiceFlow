@@ -13,7 +13,13 @@
     "test:technicians": "node --experimental-strip-types --experimental-default-type=module scripts/test-technicians.mjs",
     "test:service-types": "node --experimental-strip-types --experimental-default-type=module scripts/test-service-types.mjs",
     "test:service-requests": "node --experimental-strip-types --experimental-default-type=module scripts/test-service-requests.mjs",
-    "test:jobs": "node --experimental-strip-types --experimental-default-type=module scripts/test-jobs.mjs"
+    "test:jobs": "node --experimental-strip-types --experimental-default-type=module scripts/test-jobs.mjs",
+    "test:jobs-dispatch": "node --experimental-strip-types --experimental-default-type=module scripts/test-jobs-dispatch.mjs",
+    "test:members": "node --experimental-strip-types --experimental-default-type=module scripts/test-members.mjs",
+    "test:app-shell": "node --experimental-strip-types --experimental-default-type=module scripts/test-app-shell.mjs",
+    "test:inventory": "node --experimental-strip-types --experimental-default-type=module scripts/test-inventory.mjs",
+    "test:billing": "node --experimental-strip-types --experimental-default-type=module scripts/test-billing.mjs",
+    "test": "npm run -s test:app-shell && npm run -s test:dashboard && npm run -s test:organization-settings && npm run -s test:customers && npm run -s test:technicians && npm run -s test:service-types && npm run -s test:service-requests && npm run -s test:jobs && npm run -s test:jobs-dispatch && npm run -s test:members && npm run -s test:inventory && npm run -s test:billing"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
