@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
       { source: "/technicians/:path*", destination: "/protected/technicians/:path*" },
       { source: "/service-types/:path*", destination: "/protected/service-types/:path*" },
       { source: "/service-requests/:path*", destination: "/protected/service-requests/:path*" },
+      { source: "/jobs/:path*", destination: "/protected/jobs/:path*" },
       {
         source: "/settings/organization",
         destination: "/protected/settings/organization",

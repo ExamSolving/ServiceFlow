@@ -74,7 +74,7 @@ export function ServiceRequestActions({ serviceRequest }: { serviceRequest: Serv
           <Button type="button" variant="outline" disabled={busy} onClick={() => setConfirmCancel(true)}><Ban aria-hidden="true" />Cancel request</Button>
         </div>
       )}
-      <p role="status" className="text-xs leading-5 text-muted-foreground">{done ? "Status updated. Refreshing…" : serviceRequest.status === "NEW" ? "Start a review once your team has seen this request, or cancel it if the customer no longer needs it." : "Scheduling and conversion to a job arrive in a later phase. You can still cancel this request."}</p>
+      <p role="status" className="text-xs leading-5 text-muted-foreground">{done ? "Status updated. Refreshing…" : serviceRequest.status === "NEW" ? "Start a review once your team has seen this request, or cancel it if the customer no longer needs it." : "Create a job when the request is ready for work, or cancel it if the customer no longer needs it."}</p>
     </div>
   );
 }

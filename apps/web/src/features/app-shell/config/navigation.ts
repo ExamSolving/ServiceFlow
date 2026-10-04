@@ -78,7 +78,7 @@ const NAVIGATION: NavigationGroup[] = [
         href: "/jobs",
         icon: "jobs",
         permission: "dispatchJobs",
-        available: false,
+        available: true,
       },
       {
         label: "Schedule",

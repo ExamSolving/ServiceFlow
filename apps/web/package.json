@@ -12,7 +12,8 @@
     "test:customers": "node --experimental-strip-types --experimental-default-type=module scripts/test-customers.mjs",
     "test:technicians": "node --experimental-strip-types --experimental-default-type=module scripts/test-technicians.mjs",
     "test:service-types": "node --experimental-strip-types --experimental-default-type=module scripts/test-service-types.mjs",
-    "test:service-requests": "node --experimental-strip-types --experimental-default-type=module scripts/test-service-requests.mjs"
+    "test:service-requests": "node --experimental-strip-types --experimental-default-type=module scripts/test-service-requests.mjs",
+    "test:jobs": "node --experimental-strip-types --experimental-default-type=module scripts/test-jobs.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

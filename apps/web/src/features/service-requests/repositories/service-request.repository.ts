@@ -58,6 +58,7 @@ function toServiceRequest(snapshot: DocumentSnapshot, session: AppSession): Serv
   }
   return {
     id: snapshot.id,
+    ...(data.convertedJobId === undefined ? {} : { convertedJobId: serviceRequestIdSchema.parse(data.convertedJobId) }),
     customerId: record.customerId,
     serviceTypeId: record.serviceTypeId,
     title: record.title,

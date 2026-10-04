@@ -9,6 +9,7 @@ export interface ServiceRequestFormValues {
   priority: ServiceRequestPriority;
 }
 export interface ServiceRequestDetail extends ServiceRequestFormValues {
+  convertedJobId?: string;
   id: string;
   customerName: string;
   customerNumber: string;

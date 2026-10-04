@@ -125,6 +125,7 @@ for (const [role, allowed] of Object.entries(expected)) {
       ...(allowed.includes("manageTechnicians") ? ["/technicians"] : []),
       ...(allowed.includes("manageServiceTypes") ? ["/service-types"] : []),
       ...(allowed.includes("manageServiceRequests") ? ["/service-requests"] : []),
+      ...(allowed.includes("dispatchJobs") ? ["/jobs"] : []),
       ...(allowed.includes("manageOrganization") ? ["/settings/organization"] : []),
     ]),
   );

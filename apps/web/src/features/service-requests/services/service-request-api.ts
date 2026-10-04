@@ -23,12 +23,12 @@ export function serviceRequestJsonError(message: string, status: number, extra?:
   return NextResponse.json({ message, ...(extra ?? {}) }, { status, headers: { "Cache-Control": "no-store" } });
 }
 
-export async function parseServiceRequestRequest<T>(request: NextRequest, schema: z.ZodType<T>) {
+export async function parseServiceRequestRequest<T>(request: NextRequest, schema: z.ZodType<T>, resource = "service request") {
   if (request.headers.get("content-type")?.split(";", 1)[0].trim().toLowerCase() !== "application/json") {
-    return { success: false as const, response: serviceRequestJsonError("Send service request details as JSON.", 415) };
+    return { success: false as const, response: serviceRequestJsonError(`Send ${resource} details as JSON.`, 415) };
   }
   const maxBytes = 32_768;
-  if (Number(request.headers.get("content-length")) > maxBytes) return { success: false as const, response: serviceRequestJsonError("Service request details are too large.", 413) };
+  if (Number(request.headers.get("content-length")) > maxBytes) return { success: false as const, response: serviceRequestJsonError("The submitted details are too large.", 413) };
   let json: unknown;
   try {
     // Limit actual bytes while streaming, including when Content-Length is absent.
@@ -44,7 +44,7 @@ export async function parseServiceRequestRequest<T>(request: NextRequest, schema
           bytes += chunk.value.byteLength;
           if (bytes > maxBytes) {
             await reader.cancel();
-            return { success: false as const, response: serviceRequestJsonError("Service request details are too large.", 413) };
+            return { success: false as const, response: serviceRequestJsonError("The submitted details are too large.", 413) };
           }
           body += decoder.decode(chunk.value, { stream: true });
         }
@@ -53,7 +53,7 @@ export async function parseServiceRequestRequest<T>(request: NextRequest, schema
     }
     json = JSON.parse(body);
   } catch {
-    return { success: false as const, response: serviceRequestJsonError("Enter valid service request details and try again.", 400) };
+    return { success: false as const, response: serviceRequestJsonError(`Enter valid ${resource} details and try again.`, 400) };
   }
   const parsed = schema.safeParse(json);
   if (!parsed.success) {

@@ -1,4 +1,4 @@
-import { ArrowUpRight, Pencil } from "lucide-react";
+import { ArrowUpRight, Pencil, Plus } from "lucide-react";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -16,7 +16,7 @@ export function ServiceRequestDetailView({ serviceRequest }: { serviceRequest: S
   return <>
     <PageHeader title={serviceRequest.title} description="Service request"
       breadcrumbs={[{ label: "Workspace", href: "/dashboard" }, { label: "Service requests", href: "/service-requests" }, { label: "Request details" }]}
-      actions={editable ? <Link href={`/service-requests/${encodeURIComponent(serviceRequest.id)}/edit`} className={buttonVariants({ variant: "outline" })}><Pencil aria-hidden="true" />Edit request</Link> : undefined} />
+      actions={editable ? <><Link href={`/service-requests/${encodeURIComponent(serviceRequest.id)}/edit`} className={buttonVariants({ variant: "outline" })}><Pencil aria-hidden="true" />Edit request</Link><Link href={`/jobs/new?serviceRequestId=${encodeURIComponent(serviceRequest.id)}`} className={buttonVariants()}><Plus aria-hidden="true" />Create job</Link></> : serviceRequest.convertedJobId ? <Link href={`/jobs/${encodeURIComponent(serviceRequest.convertedJobId)}`} className={buttonVariants()}>View job<ArrowUpRight aria-hidden="true" /></Link> : undefined} />
     <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
       <Card>
         <CardHeader className="border-b border-border"><SectionHeading title="Request details" description="What the customer asked for and how urgent it is." action={<ServiceRequestPriority priority={serviceRequest.priority} />} /></CardHeader>
