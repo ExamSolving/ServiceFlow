@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { moduleLoader, MemoryFirestore, MemoryTimestamp, firestoreMock, commitDate } from "./helpers/firestore-harness.mjs";
+import { moduleLoader, MemoryFirestore, firestoreMock, commitDate } from "./helpers/firestore-harness.mjs";
 
 const owner = { uid: "owner-a", organizationId: "org-a", role: "OWNER", displayName: "Olive Owner" };
 const form = { customerId: "customer-a", serviceTypeId: "service-a", title: "Boiler service", description: "Annual inspection of the office boiler.", priority: "NORMAL", serviceAddress: "4 Mill Lane, Pune 411001" };

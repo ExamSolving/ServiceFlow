@@ -19,7 +19,9 @@
     "test:app-shell": "node --experimental-strip-types --experimental-default-type=module scripts/test-app-shell.mjs",
     "test:inventory": "node --experimental-strip-types --experimental-default-type=module scripts/test-inventory.mjs",
     "test:billing": "node --experimental-strip-types --experimental-default-type=module scripts/test-billing.mjs",
-    "test": "npm run -s test:app-shell && npm run -s test:dashboard && npm run -s test:organization-settings && npm run -s test:customers && npm run -s test:technicians && npm run -s test:service-types && npm run -s test:service-requests && npm run -s test:jobs && npm run -s test:jobs-dispatch && npm run -s test:members && npm run -s test:inventory && npm run -s test:billing"
+    "test:mobile-session": "node --experimental-strip-types --experimental-default-type=module scripts/test-mobile-session.mjs",
+    "test:mobile-jobs": "node --experimental-strip-types --experimental-default-type=module scripts/test-mobile-jobs.mjs",
+    "test": "npm run -s test:app-shell && npm run -s test:dashboard && npm run -s test:organization-settings && npm run -s test:customers && npm run -s test:technicians && npm run -s test:service-types && npm run -s test:service-requests && npm run -s test:jobs && npm run -s test:jobs-dispatch && npm run -s test:members && npm run -s test:inventory && npm run -s test:billing && npm run -s test:mobile-session && npm run -s test:mobile-jobs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/test-technician-moves.mjs"
   },
   "devDependencies": {
     "typescript": "^7.0.2"

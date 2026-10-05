@@ -18,7 +18,7 @@ const DESTRUCTIVE: readonly JobStatus[] = ["CANCELLED", "REJECTED"];
 const HELP: Partial<Record<JobStatus, string>> = {
   ASSIGNED: "Use the dispatch panel to assign a technician instead.",
   ACCEPTED: "The technician has accepted the visit.",
-  REJECTED: "The technician declined; re-dispatch or cancel.",
+  REJECTED: "Closes the job permanently. To find another technician, use Rescheduled.",
   RESCHEDULED: "A new time is needed; update the dispatch panel afterwards.",
   EN_ROUTE: "Technician is travelling to the site.",
   ARRIVED: "Technician is on site.",

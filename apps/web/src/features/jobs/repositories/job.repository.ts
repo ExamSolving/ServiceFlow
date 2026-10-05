@@ -51,6 +51,8 @@ function detail(snapshot: DocumentSnapshot, session: AppSession): JobDetail {
   if (data.titleSearch !== normalizeJobTitle(parsed.title)) throw new Error("Invalid job search index");
   return parsed;
 }
+/** The job page's checks for a stored job, shared with the technician API, which applies its own access rules. */
+export const parseJobSnapshot = detail;
 function audit(transaction: Transaction, session: AppSession, id: string, action: string, metadata: Record<string, unknown>, now: Timestamp) {
   transaction.create(adminDb.collection("auditLogs").doc(), { organizationId: session.organizationId, actorUserId: session.uid, entityType: "JOB", entityId: id, action, metadata, createdAt: now });
 }

@@ -1,65 +1,51 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * ServiceFlow colours, matching the web admin (apps/web/src/app/globals.css).
+ * The light palette uses the web's tokens; the dark palette is a green-tinted
+ * equivalent with the same roles.
  */
-
-import '@/global.css';
-
-import { Platform } from 'react-native';
-
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    background: '#fcfcf9',
+    card: '#ffffff',
+    text: '#172e29',
+    textSecondary: '#687772',
+    primary: '#176c58',
+    primaryPressed: '#125746',
+    primaryText: '#ffffff',
+    secondary: '#eaf1e5',
+    secondaryText: '#375f4c',
+    muted: '#f0f4ec',
+    border: '#dce3de',
+    ring: '#4f9782',
+    danger: '#bb3434',
+    dangerSurface: '#fbf1f1',
+    dangerBorder: '#f1d6d6',
+    infoSurface: '#e8f0ee',
+    infoBorder: '#d1e2de',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    background: '#0f1a17',
+    card: '#15241f',
+    text: '#e7f0ec',
+    textSecondary: '#9cb0a8',
+    primary: '#4fb394',
+    primaryPressed: '#3f9a7e',
+    primaryText: '#0b1512',
+    secondary: '#1d342c',
+    secondaryText: '#b4d9ca',
+    muted: '#182a24',
+    border: '#26392f',
+    ring: '#4f9782',
+    danger: '#f08a8a',
+    dangerSurface: '#2a1717',
+    dangerBorder: '#4a2424',
+    infoSurface: '#16302a',
+    infoBorder: '#24463b',
   },
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export type Palette = { [K in keyof typeof Colors.light]: string };
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
-
-export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
-} as const;
-
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+export const Spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
+export const Radius = { sm: 6, md: 10, lg: 14, full: 999 } as const;
+export const MaxContentWidth = 560;

@@ -9,25 +9,13 @@ import { PageHeader } from "@/src/features/app-shell/components/page-header";
 import { InvoiceStatusBadge, QuotationStatusBadge } from "@/src/features/billing/components/document-status";
 import { formatMoney } from "@/src/lib/billing/money";
 import { formatDateTime } from "@/src/features/dashboard/components/dashboard-format";
-import { jobStatusLabel } from "@/src/features/dashboard/components/dashboard-format";
-import type { JobActivity, JobContext } from "../types/job";
+import type { JobContext } from "../types/job";
+import { describeJobActivity } from "../utils/job-activity";
 import { canDispatchJob, canEditJob } from "../utils/job-workflow";
 import { JobActions } from "./job-actions";
 import { JobDispatchForm } from "./job-dispatch-form";
 import { JobNoteForm } from "./job-notes";
 import { JobPriority, JobStatus, formatJobDate } from "./job-status";
-
-function describeActivity(entry: JobActivity): string {
-  const meta = entry.metadata;
-  const text = (key: string) => (typeof meta[key] === "string" ? String(meta[key]) : null);
-  switch (entry.action) {
-    case "JOB_CREATED": return `Job created${text("jobNumber") ? ` as ${text("jobNumber")}` : ""}${text("serviceRequestId") ? " from a service request" : ""}.`;
-    case "JOB_UPDATED": return `Details updated${Array.isArray(meta.changedFields) ? ` (${(meta.changedFields as string[]).join(", ")})` : ""}.`;
-    case "JOB_DISPATCHED": return `Dispatched${text("to") ? ` · ${jobStatusLabel(text("to") as Parameters<typeof jobStatusLabel>[0])}` : ""}${text("scheduledAt") ? " with a visit time" : " without a visit time"}.`;
-    case "JOB_STATUS_CHANGED": return `Status changed${text("from") ? ` from ${jobStatusLabel(text("from") as Parameters<typeof jobStatusLabel>[0])}` : ""}${text("to") ? ` to ${jobStatusLabel(text("to") as Parameters<typeof jobStatusLabel>[0])}` : ""}${text("note") ? ` — ${text("note")}` : ""}.`;
-    default: return entry.action.toLowerCase().replace(/_/g, " ");
-  }
-}
 
 const QUOTE_STATUSES = ["DIAGNOSING", "QUOTATION_REQUIRED", "WAITING_APPROVAL", "APPROVED", "ON_HOLD", "IN_PROGRESS"] as const;
 const INVOICE_STATUSES = ["COMPLETED", "INVOICED", "PARTIAL"] as const;
@@ -106,7 +94,7 @@ export function JobDetailView({ context }: { context: JobContext }) {
         <Card><CardHeader className="border-b border-border"><SectionHeading title="Activity" description="Audit trail for this job." action={<History aria-hidden="true" className="size-4 text-muted-foreground" />} /></CardHeader><CardContent>
           {activity.length ? (
             <ol className="space-y-3">
-              {activity.map((entry) => <li key={entry.id} className="flex gap-3 text-sm"><span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" /><div className="min-w-0"><p className="break-words leading-6">{describeActivity(entry)}</p><p className="text-xs text-muted-foreground"><time dateTime={entry.createdAt}>{formatDateTime(entry.createdAt, timezone)}</time></p></div></li>)}
+              {activity.map((entry) => <li key={entry.id} className="flex gap-3 text-sm"><span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" /><div className="min-w-0"><p className="break-words leading-6">{describeJobActivity(entry)}</p><p className="text-xs text-muted-foreground"><time dateTime={entry.createdAt}>{formatDateTime(entry.createdAt, timezone)}</time></p></div></li>)}
             </ol>
           ) : <EmptyState icon={History} title="No activity yet" description="Changes to this job will be listed here." className="min-h-28" />}
         </CardContent></Card>

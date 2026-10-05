@@ -15,6 +15,6 @@ export async function GET(request: NextRequest) {
     return jsonOk({ session: await readMobileSession(auth.session) });
   } catch (error) {
     logger.error("MOBILE", "Session lookup failed", error);
-    return jsonError("We couldn't load your account. Please try again.", 500);
+    return jsonError("We couldn’t load your account. Please try again.", 500);
   }
 }

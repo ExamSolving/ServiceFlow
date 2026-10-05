@@ -10,6 +10,7 @@
     "web": "npm --workspace apps/web run dev",
     "mobile": "npm --workspace apps/mobile run start",
     "domain:check": "npm --workspace packages/domain run typecheck",
+    "domain:test": "npm --workspace packages/domain run test",
     "functions:build": "npm --workspace functions run build",
     "firebase:emulators": "firebase emulators:start"
   }
